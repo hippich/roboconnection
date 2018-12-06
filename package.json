@@ -1,0 +1,42 @@
+{
+  "name": "roboconnection",
+  "version": "0.0.1",
+  "description": "A library for establishing ROM (remote operation mode) connections with robots like Jibo.",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "build": "yarn clean && tsc && tsc -m es6 --outDir lib-esm && webpack",
+    "test": "mocha",
+    "clean": "shx rm -rf lib lib-esm dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com:wwlib/roboconnection.git"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "request": "^2.88.0",
+    "ws": "^6.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^9.4.6",
+    "@types/request": "^2.48.1",
+    "dts-bundle": "^0.7.3",
+    "mocha": "~2.4.5",
+    "shx": "^0.3.2",
+    "source-map-loader": "^0.2.3",
+    "ts-loader": "^5.3.0",
+    "typescript": "^2.0.0",
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.1.2"
+  },
+  "keywords": [
+    "robo,robot,connection,rom,remote operation mode"
+  ],
+  "author": "Andrew Rapo <andrew@wwlib.org> (http://wwlib.org/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wwlib/roboconnection/issues"
+  },
+  "homepage": "https://github.com/wwlib/roboconnection#readme"
+}
