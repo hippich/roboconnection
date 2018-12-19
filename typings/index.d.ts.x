@@ -1,3 +1,8 @@
+/**
+    The JIBO declarations are here for reference.
+    They have been moved into src/index.ts to ensure they are included in the generated dist/index.d.ts
+**/
+
 declare namespace JIBO {
 
     export namespace ProtocolVersions {
@@ -258,9 +263,9 @@ declare namespace JIBO {
          */
         export namespace DisplayChanges {
             /** Swap the current view for another */
-            export type Swap = 'Swap';    
+            export type Swap = 'Swap';
             // NOTE :: for now we only support swap
-            export type DisplayChangeType = Swap;    
+            export type DisplayChangeType = Swap;
         }
 
         /**

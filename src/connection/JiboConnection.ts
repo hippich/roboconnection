@@ -6,18 +6,18 @@ import { Requester } from './jibo-command-requester';
 export interface ConnectionInfo {
     clientId: string;
     clientSecret: string;
-    port: number;
+    port?: number;
 }
 
 export interface RobotInfo {
-    name: string;
+    name?: string;
     serialName: string;
     endpoint: string;
     email: string;
     password: string;
-    ip: string;
-    onConnected: any;
-    onDisconnected: any;
+    ip?: string;
+    onConnected?: any;
+    onDisconnected?: any;
 }
 
 export class JiboConnection extends EventEmitter {
@@ -198,13 +198,14 @@ export class JiboConnection extends EventEmitter {
                     let connectionInfo = body_obj.data;
                     this.logDebug("Recieved a certificate! Robot ip address: " + connectionInfo.payload.ipAddress);
                     // this.logDebug('robot ready!', JSON.stringify(connectionInfo, null, 2));
-                    this._robotInfo.ip                  = connectionInfo.payload.ipAddress;
+                    let ipAddress: string           = connectionInfo.payload.ipAddress;
+                    this._robotInfo.ip = ipAddress;
                     let key                         = connectionInfo.private;
                     this._p12Certificate            = connectionInfo.cert;
                     this._certificateFingerprint    = connectionInfo.fingerprint;
                     this.logDebug(`retrieveCertificate: connecting to robot...`);
                     this.statusMessage(`retrieveCertificate(): success: connecting to robot...`);
-                    this.connectToRobot(this._robotInfo.ip, key, this._p12Certificate, this._certificateFingerprint, (requester: Requester) => {
+                    this.connectToRobot(ipAddress, key, this._p12Certificate, this._certificateFingerprint, (requester: Requester) => {
                         this.logDebug(`retrieveCertificate: connected: `, requester);
                     });
 
@@ -227,7 +228,10 @@ export class JiboConnection extends EventEmitter {
                 this.logError(`Unable to retrieve a certificate. Aborting.`);
                 this.statusMessage(`Unable to retrieve a certificate. Aborting.`);
                 this._connected = false;
-                this._robotInfo.onDisconnected();
+                this.emit('disconnected');
+                if (this._robotInfo.onDisconnected) {
+                    this._robotInfo.onDisconnected();
+                }
             }
         }
     }
@@ -248,20 +252,28 @@ export class JiboConnection extends EventEmitter {
             this.statusMessage(`connectToRobot(): error: Connection closed because: ${JSON.stringify(data, null, 2)}`);
             // process.exit();
             this._connected = false;
-            this._robotInfo.onDisconnected();
+            this._requester = undefined;
+            this.emit('disconnected');
+            if (this._robotInfo.onDisconnected) {
+                this._robotInfo.onDisconnected();
+            }
         });
 
         this._requester.connect(ipAddress, options)
-            .then((result: any) => {
+            .then(() => {
                 if (this._requester) {
                     this._connected = true;
-                    this._robotInfo.onConnected(this._requester);
-
-                    this.logDebug('JiboConnection: connectToRobot: OK');
-                    this.statusMessage(`connectToRobot(): Connection: OK:`);
+                    // Two callbacks plus an emit is a bt much...
+                    if (this._robotInfo.onConnected) {
+                        this._robotInfo.onConnected(this._requester);
+                    }
+                    // this callback is currently only used internally, so remove?
                     if (callback) {
                         callback(this._requester);
                     }
+                    this.emit('connected', this._requester);
+                    this.logDebug('JiboConnection: connectToRobot: OK');
+                    this.statusMessage(`connectToRobot(): Connection: OK:`);
                 } else {
                     this.logDebug('JiboConnection: connectToRobot: requester is undefined');
                     this.statusMessage(`connectToRobot(): Connection: requester is undefined`);
@@ -297,13 +309,24 @@ export class JiboConnection extends EventEmitter {
             this._requester.disconnect();
             this._requester = undefined;
             this._connected = false;
-            this._robotInfo.onDisconnected();
+            this.emit('disconnected');
+            if (this._robotInfo.onDisconnected) {
+                this._robotInfo.onDisconnected();
+            }
             this.statusMessage(`disconnect()`);
         }
     }
 
     get connected(): boolean {
         return this._connected;
+    }
+
+    get requester(): Requester | undefined {
+        if (this._connected) {
+            return this._requester;
+        } else {
+            return undefined;
+        }
     }
 
     statusMessage(message: string, clearMessages: boolean=false): void {

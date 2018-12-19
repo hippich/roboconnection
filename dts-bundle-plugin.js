@@ -24,7 +24,9 @@ class DtsBundlePlugin {
                 out: out,
                 removeSource: false,
                 outputAsModuleFolder: false,
-                referenceExternals: true
+                externals: false,
+                referenceExternals: false,
+                verbose: false
             });
         });
     }
